@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Админ-панель | Ibay Bank</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 text-gray-800">
+  <div class="max-w-5xl mx-auto p-6">
+    <h1 class="text-3xl font-bold mb-6 text-center">Админ-панель Ibay Bank</h1>
+
+    <!-- Вход в админ-панель -->
+    <section id="loginSection" class="bg-white rounded shadow p-4 mb-6">
+      <h2 class="text-xl font-semibold mb-4">Введите данные администратора</h2>
+      <input id="adminUsername" placeholder="Имя пользователя" class="border p-2 rounded mb-4 w-full">
+      <input id="adminPassword" type="password" placeholder="Пароль" class="border p-2 rounded mb-4 w-full">
+      <button onclick="loginAdmin()" class="bg-blue-600 text-white py-2 px-4 rounded w-full">Войти</button>
+    </section>
+
+    <!-- Обычный админ доступ -->
+    <section id="mainAdminSection" class="bg-white rounded shadow p-4 mb-6" style="display: none;">
+      <h2 class="text-xl font-semibold mb-4">Обычный админ доступ</h2>
+      <input id="mainAdminPassword" type="password" placeholder="Пароль админа" class="border p-2 rounded mb-4 w-full">
+      <button onclick="accessMainAdmin()" class="bg-green-600 text-white py-2 px-4 rounded w-full">Доступ к обычному администратору</button>
+      <button onclick="accessSuperAdminPage()" class="bg-red-600 text-white py-2 px-4 rounded w-full mt-4">Перейти в главную админ-панель</button>
+    </section>
+
+    <!-- Главный админ доступ -->
+    <section id="superAdminSection" class="bg-white rounded shadow p-4 mb-6" style="display: none;">
+      <h2 class="text-xl font-semibold mb-4">Главный админ доступ</h2>
+      <input id="superAdminPassword" type="password" placeholder="Пароль главного администратора" class="border p-2 rounded mb-4 w-full">
+      <button onclick="accessSuperAdmin()" class="bg-red-600 text-white py-2 px-4 rounded w-full">Доступ к главному администратору</button>
+    </section>
+
+    <!-- Добавление пользователей -->
+    <section id="addUserSection" class="bg-white rounded shadow p-4 mb-6" style="display: none;">
+      <h2 class="text-xl font-semibold mb-4">Добавить нового пользователя</h2>
+      <input id="firstName" placeholder="Имя" class="border p-2 rounded mb-4 w-full">
+      <input id="lastName" placeholder="Фамилия" class="border p-2 rounded mb-4 w-full">
+      <input id="cardNumber" placeholder="Номер карты" class="border p-2 rounded mb-4 w-full">
+      <input id="cardPassword" type="password" placeholder="PIN-код" class="border p-2 rounded mb-4 w-full">
+      <input id="balance" type="number" placeholder="Баланс" class="border p-2 rounded mb-4 w-full">
+      <input id="commission" type="number" placeholder="Комиссия (%)" class="border p-2 rounded mb-4 w-full">
+      <button onclick="addUser()" class="bg-blue-600 text-white py-2 px-4 rounded w-full">Добавить пользователя</button>
+    </section>
+
+    <!-- Список пользователей -->
+    <section id="userListSection" class="bg-white rounded shadow p-4 mb-6" style="display: none;">
+      <h2 class="text-xl font-semibold mb-4">Список пользователей</h2>
+      <div id="userList" class="space-y-2"></div>
+    </section>
+
+    <!-- Добавление нового администратора -->
+    <section id="addAdminSection" class="bg-white rounded shadow p-4 mb-6" style="display: none;">
+      <h2 class="text-xl font-semibold mb-4">Добавить нового администратора</h2>
+      <input id="newAdminUsername" placeholder="Имя пользователя нового админа" class="border p-2 rounded mb-4 w-full">
+      <input id="newAdminPassword" type="password" placeholder="Пароль нового админа" class="border p-2 rounded mb-4 w-full">
+      <button onclick="addAdmin()" class="bg-blue-600 text-white py-2 px-4 rounded w-full">Добавить администратора</button>
+    </section>
+
+  </div>
+
+  <script>
+    // Настройки паролей
+    const adminCredentials = { username: 'E1den', password: '20146767' };
+    const superAdminCredentials = { password: '20146767' };
+
+    let users = [];
+    let admins = [];
+
+    // Загрузка пользователей и администраторов
+    function loadData() {
+      const usersJson = localStorage.getItem('users');
+      const adminsJson = localStorage.getItem('admins');
+      if (usersJson) {
+        users = JSON.parse(usersJson);
+      }
+      if (adminsJson) {
+        admins = JSON.parse(adminsJson);
+      }
+      displayUsers();
+    }
+
+    // Отображение списка пользователей
+    function displayUsers() {
+      const userList = document.getElementById('userList');
+      userList.innerHTML = '';
+      users.forEach((user) => {
+        userList.innerHTML += `
+          <div>
+            <p>Имя: ${user.firstName} ${user.lastName}, Карта: ${user.cardNumber}, Баланс: ${user.balance.toFixed(2)} AZN, Комиссия: ${user.commission}%</p>
+            <button onclick="editUser('${user.cardNumber}')" class="bg-yellow-600 text-white py-1 px-2 rounded">Редактировать</button>
+            <button onclick="deleteUser('${user.cardNumber}')" class="bg-red-600 text-white py-1 px-2 rounded">Удалить</button>
+          </div>`;
+      });
+    }
+
+    // Вход администратора
+    function loginAdmin() {
+      const username = document.getElementById('adminUsername').value;
+      const password = document.getElementById('adminPassword').value;
+
+      if (username === adminCredentials.username && password === adminCredentials.password) {
+        document.getElementById('loginSection').style.display = 'none';
+        document.getElementById('mainAdminSection').style.display = 'block';
+      } else {
+        alert('Неверное имя пользователя или пароль');
+      }
+    }
+
+    // Доступ обычного администратора
+    function accessMainAdmin() {
+      const mainAdminPassword = document.getElementById('mainAdminPassword').value;
+
+      if (mainAdminPassword === superAdminCredentials.password) {
+        document.getElementById('mainAdminSection').style.display = 'none';
+        document.getElementById('addUserSection').style.display = 'block';
+        document.getElementById('userListSection').style.display = 'block';
+        loadData();
+      } else {
+        alert('Неверный пароль');
+      }
+    }
+
+    // Доступ главного администратора
+    function accessSuperAdmin() {
+      const superAdminPassword = document.getElementById('superAdminPassword').value;
+
+      if (superAdminPassword === superAdminCredentials.password) {
+        alert('Добро пожаловать в главную админ-панель');
+        document.getElementById('superAdminSection').style.display = 'none';
+        document.getElementById('addAdminSection').style.display = 'block';
+      } else {
+        alert('Неверный пароль главного администратора');
+      }
+    }
+
+    // Переход в главную админ-панель
+    function accessSuperAdminPage() {
+      document.getElementById('mainAdminSection').style.display = 'none';
+      document.getElementById('superAdminSection').style.display = 'block';
+    }
+
+    // Добавление нового пользователя
+    function addUser() {
+      const firstName = document.getElementById('firstName').value;
+      const lastName = document.getElementById('lastName').value;
+      const cardNumber = document.getElementById('cardNumber').value;
+      const cardPassword = document.getElementById('cardPassword').value;
+      const balance = parseFloat(document.getElementById('balance').value);
+      const commission = parseFloat(document.getElementById('commission').value);
+
+      if (!firstName || !lastName || !cardNumber || !cardPassword || isNaN(balance) || isNaN(commission)) {
+        alert('Пожалуйста, заполните все поля');
+        return;
+      }
+
+      const newUser = {
+        firstName,
+        lastName,
+        cardNumber,
+        cardPassword,
+        balance,
+        commission
+      };
+
+      users.push(newUser);
+      localStorage.setItem('users', JSON.stringify(users));
+      alert('Пользователь добавлен!');
+      displayUsers();
+    }
+
+    // Редактирование пользователя
+    function editUser(cardNumber) {
+      const user = users.find(u => u.cardNumber === cardNumber);
+      if (user) {
+        document.getElementById('firstName').value = user.firstName;
+        document.getElementById('lastName').value = user.lastName;
+        document.getElementById('cardNumber').value = user.cardNumber;
+        document.getElementById('cardPassword').value = user.cardPassword;
+        document.getElementById('balance').value = user.balance;
+        document.getElementById('commission').value = user.commission;
+      }
+    }
+
+    // Удаление пользователя
+    function deleteUser(cardNumber) {
+      users = users.filter(user => user.cardNumber !== cardNumber);
+      localStorage.setItem('users', JSON.stringify(users));
+      displayUsers();
+    }
+
+    // Добавление нового администратора
+    function addAdmin() {
+      const newAdminUsername = document.getElementById('newAdminUsername').value;
+      const newAdminPassword = document.getElementById('newAdminPassword').value;
+
+      if (!newAdminUsername || !newAdminPassword) {
+        alert('Пожалуйста, заполните все поля');
+        return;
+      }
+
+      const newAdmin = {
+        username: newAdminUsername,
+        password: newAdminPassword
+      };
+
+      admins.push(newAdmin);
+      localStorage.setItem('admins', JSON.stringify(admins));
+      alert('Новый администратор добавлен!');
+    }
+  </script>
+</body>
+</html>
